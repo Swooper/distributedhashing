@@ -23,31 +23,31 @@ class DHash():
 
                 # S, Servers, systems
                 # E, Extents
-                # N, Nodes, reflections, duplicates
+                # N, Reflections, duplicates, replicas
                 self.S = 10
                 self.E = 1000
                 self.N = 3
                 
                 self.nextS = 0
 
-                self.Nodes = self.fillNodes(self.N)
+                self.Replicas = self.fillReplicas(self.N)
                 pass
 
-        # Fill the Nodes with None and False values,
+        # Fill the Replicas with None and False values,
         # "Empty" objects in N
-        def fillNodes(self, N):
-                Nodes = [[] for n in range(N)]
+        def fillReplicas(self, N):
+                Replicas = [[] for n in range(N)]
 
                 for i in range(self.N):
                         for j in range(self.E):
-                                Nodes[i].append(Server(None, False))
+                                Replicas[i].append(Server(None, False))
                                 pass
                         pass
 
-                return Nodes
+                return Replicas
 
         # Update simulation function that reads the serverId of
-        # the index in every node for a million (using) simulated writes
+        # the index in every Replica for a million (using) simulated writes
         def update(self):
                 counts = [0 for s in range(self.S)]
                 
@@ -60,8 +60,8 @@ class DHash():
                 for i in range(using):
                         randi =  random.randint(0, self.E-1)
 
-                        for Node in self.Nodes:
-                                counts[Node[randi].serverId] += 1
+                        for Replica in self.Replicas:
+                                counts[Replica[randi].serverId] += 1
                                 pass
 
                         
@@ -74,18 +74,18 @@ class DHash():
 
                 return str(counts)+", "+str(sum(counts))+"\nConflicts: "+str(conflicts)+", "+str(ccounts)+", "+str(cplaces)
 
-        # Add snew into nodes
-        #   for each node:
+        # Add snew into Replicas
+        #   for each Replica:
         #               choose a random place, make that place "assigned"
-        #               run down the node and add the server handle until it reaches the next server in that node 
-        #                                                                                                          or the same server value is already at that place in other nodes
-        def addToNodes(self, snew):
+        #               run down the Replica and add the server handle until it reaches the next server in that Replica 
+        #                                                                                                          or the same server value is already at that place in other Replicas
+        def addToReplicas(self, snew):
                 randis = [random.randint(0, self.E-1) for ri in range(self.N)]
 
                 # Randomed index can't be the same as the start of an already-there server
                 # OR the new serverId can't be the same as the one already-there
                 for ri in range(self.N):
-                        for n in self.Nodes:
+                        for n in self.Replicas:
                                 while snew == n[randis[ri]].serverId:
                                         randis[ri] = random.randint(0, self.E-1)
                                         pass
@@ -93,38 +93,38 @@ class DHash():
                         pass
                 
                 
-                # Add the rest of values
+                # Use the randomized index for 
                 for n in range(self.N):
                         ri = randis[n]
-                        self.addToNode(n, snew, ri)
+                        self.addToReplica(n, snew, ri)
                         pass
 
                 pass
 
-        # Add snew to a single node n, at point ri, start indicates whether we're coming from addToNodes or not
-        def addToNode(self, n, snew, ri):
+        # Add snew to a single Replica n, at point ri, start indicates whether we're coming from addToReplicas or not
+        def addToReplica(self, n, snew, ri):
 
-                # Place the starting points of the server in each node, "assigned" points
-                self.Nodes[n][ri].serverId = snew
-                self.Nodes[n][ri].assigned = True
+                # Place the starting points of the server in each Replica, "assigned" points
+                self.Replicas[n][ri].serverId = snew
+                self.Replicas[n][ri].assigned = True
 
                 i = (ri-1)%self.E
-                while snew != self.Nodes[n][i].serverId:
+                while snew != self.Replicas[n][i].serverId:
 
-                        # Check other Nodes for the snew id, 
-                        #       if it's already in other Nodes:
-                        #       -       send it through addToNode again, with a new sid
+                        # Check other Replicas for the snew id, 
+                        #       if it's already in other Replicas:
+                        #       -       send it through addToReplica again, with a new sid
                         ids = []
-                        for Node in self.Nodes:
-                                ids.append(Node[i].serverId)
+                        for Replica in self.Replicas:
+                                ids.append(Replica[i].serverId)
                                 pass
                         if snew in ids:
-                                self.addToNode(n, (snew+1)%self.S, i, True)
+                                self.addToReplica(n, (snew+1)%self.S, i)
                                 break
 
                         # Check for the start of other servers
-                        if self.Nodes[n][i].assigned != True:
-                                self.Nodes[n][i].serverId = snew
+                        if self.Replicas[n][i].assigned != True:
+                                self.Replicas[n][i].serverId = snew
                                 pass
                         else:
                                 break
@@ -135,20 +135,20 @@ class DHash():
         # Run add() x times, with serverIds [nextS, nextS+1, .. x-1]
         def addX(self, x):
                 for i in range(self.nextS, x):
-                        self.addToNodes(i)
+                        self.addToReplicas(i)
                         pass
 
 
                 if self.nextS == 0:
                         for i in range(self.nextS, 3):
-                                self.addToNodes(i)
+                                self.addToReplicas(i)
                                 pass
                         pass
                 self.nextS += x
 
                 pass
 
-        # Kill server with id sid from the nodes, and handle the rest of the extents
+        # Kill server with id sid from the Replicas, and handle the rest of the extents
         def killServer(self, sid):
                 pass
 
@@ -160,11 +160,11 @@ dhash.addX(10)
 print "<0, 1, 2, 3, 4, 5, 6, 7, 8, 9>"
 print dhash.update()
 i = 0
-for Node in dhash.Nodes:
+for Replica in dhash.Replicas:
         print "N"+str(i)+":"
         x = 0
         printstr = ""
-        for s in Node:
+        for s in Replica:
                 printstr += str(s.serverId)+" "+str(s.assigned)+", "
                 x += 1
         print "["+printstr[0:-2]+"]"
