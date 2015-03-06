@@ -25,7 +25,7 @@ class DHash():
                 # E, Extents
                 # N, Nodes, reflections, duplicates
                 self.S = 10
-                self.E = 10000
+                self.E = 1000
                 self.N = 3
                 
                 self.nextS = 0
@@ -102,7 +102,7 @@ class DHash():
                 pass
 
         # Add snew to a single node n, at point ri, start indicates whether we're coming from addToNodes or not
-        def addToNode(self, n, snew, ri, start):
+        def addToNode(self, n, snew, ri):
 
                 # Place the starting points of the server in each node, "assigned" points
                 self.Nodes[n][ri].serverId = snew
