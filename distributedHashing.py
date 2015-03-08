@@ -5,14 +5,6 @@
 import random
 
 
-# A Server object, with a serverId and a boolean assigned value
-class Server():
-        def __init__(self, serverId, start, end):
-                self.serverId = serverId
-                self.start = start
-                self.end = end
-                pass
-
 # Distributed hashing
 class DHash():
         def __init__(self):
@@ -30,12 +22,11 @@ class DHash():
                 self.E = 500
                 self.N = 0
 
-                self.Servers = []
                 self.Replicas = []
                 pass
 
-        # Fill the Replicas with None and False values,
-        # "Empty" objects in N
+        # Fill the Replicas with None values,
+        # "Empty", non-assigned values in every replica
         def fillReplicas(self, N):
                 Replicas = [[] for n in range(N)]
 
@@ -88,33 +79,27 @@ class DHash():
                         for n in range(self.N):
                                 nextIndex = (e+randis[n]+1)%self.E
 
-                                # Check if snew is already in others
+                                # Check if snew is already in other replicas
                                 ids = []
                                 for r in range(self.N):
                                         if r != n:
                                                 ids.append(self.Replicas[r][nextIndex])
                                                 pass
                                         pass
+                                # And change it to the next snew that's not already in other replicas
                                 while snew in ids:
                                         snew = (snew+1)%self.S
                                         pass
 
                                         
-                                self.addToReplica(snew, n, nextIndex)
+                                # Add the serverId snew to replica n, at the nexIndex
+                                self.Replicas[n][nextIndex] = snew
                         pass
 
                 pass
 
-        # Add the serverId snew to replica n, at point i
-        #       If it clashes at point i in other replicas:
-        #               Use the next snew (wrapped-around)
-        def addToReplica(self, snew, n, i):
-
-                self.Replicas[n][i] = snew
-                pass
-
-        # Run add() x times, with serverIds [nextS, nextS+1, .. x-1]
-        def addX(self, x):
+        # Run addToReplicas() x times, with serverIds [nextS, nextS+1, .. x-1]
+        def add(self, x):
                 # Readjust the number of servers
                 nextS = self.S
                 self.S += x
@@ -166,20 +151,24 @@ class DHash():
                                         pass
                                 pass
                         pass
+                pass
+
+        # Print the contents of all the replicas in order
+        def printReplicas(self):
+                i = 0
+                for Replica in self.Replicas:
+                        print "N"+str(i)+":"
+                        print Replica
+                        i += 1
+                        pass
+                pass
 
 # End of class DHash
 
 # Run part
 dhash = DHash()
-dhash.addX(5)
+dhash.add(5)
 dhash.killServer(3)
 print dhash.update()
 
-i = 0
-for Replica in dhash.Replicas:
-        print "N"+str(i)+":"
-        printstr = ""
-        for s in Replica:
-                printstr += str(s)+", "
-        print "["+printstr[0:-2]+"]"
-        i += 1
+dhash.printReplicas()
