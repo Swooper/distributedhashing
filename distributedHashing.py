@@ -137,12 +137,31 @@ class DHash():
         # Kill server with id sid from the Replicas, and handle the rest of the extents
         def killServer(self, sid):
                 for x in range(self.E):
+                        # Clear out sid from N0
                         if self.Replicas[0][x] == sid:
                                 self.Replicas[0][x] = self.Replicas[1][x]
-                                self.Replicas[1][x] = self.Replicas[1][x]+1
+                                self.Replicas[1][x] += 1
                                 if self.N > 2:
                                         if self.Replicas[1][x] == self.Replicas[2][x]:
-                                                self.Replicas[1][x] = self.Replicas[1][x]+1
+                                                self.Replicas[1][x] += 1
+                                                pass
+                                        pass
+                                pass
+                        if self.N >= 2:
+                                # Clear out sid from N1
+                                if self.Replicas[1][x] == sid:
+                                        self.Replicas[1][x] += 1
+                                        if self.Replicas[1][x] == self.Replicas[0][x]:
+                                                self.Replicas[1][x] += 1
+                                                pass
+                                        pass
+                                pass
+                        if self.N == 3:
+                                # Clear out sid from N2
+                                while self.Replicas[2][x] == sid:
+                                        self.Replicas[2][x] += 1
+                                        while( self.Replicas[2][x] == self.Replicas[1][x] ) or (self.Replicas[2][x] == self.Replicas[0][x] ):
+                                                self.Replicas[2][x] += 1
                                                 pass
                                         pass
                                 pass
