@@ -27,7 +27,7 @@ class DHash():
                 # N, Reflections, duplicates, replicas
                 # Start at zero, change this as we add more
                 self.S = 0 
-                self.E = 50
+                self.E = 500
                 self.N = 0
 
                 self.Servers = []
@@ -132,23 +132,29 @@ class DHash():
                 for i in range(nextS, nextS+x):
                         self.addToReplicas(i)
                         pass
-
                 pass
 
         # Kill server with id sid from the Replicas, and handle the rest of the extents
         def killServer(self, sid):
-                pass
+                for x in range(self.E):
+                        if self.Replicas[0][x] == sid:
+                                self.Replicas[0][x] = self.Replicas[1][x]
+                                self.Replicas[1][x] = self.Replicas[1][x]+1
+                                if self.N > 2:
+                                        if self.Replicas[1][x] == self.Replicas[2][x]:
+                                                self.Replicas[1][x] = self.Replicas[1][x]+1
+                                                pass
+                                        pass
+                                pass
+                        pass
 
+# End of class DHash
 
-
-# 
+# Run part
 dhash = DHash()
-dhash.addX(2)
-# dhash.addX(5)
-# dhash.addX(5)
-# dhash.addX(5)
-# dhash.addX(5)
-# print dhash.update()
+dhash.addX(5)
+dhash.killServer(3)
+print dhash.update()
 
 i = 0
 for Replica in dhash.Replicas:
