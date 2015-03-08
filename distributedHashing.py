@@ -19,7 +19,7 @@ class DHash():
                 # N, Reflections, duplicates, replicas
                 # Start at zero, change this as we add more
                 self.S = 0 
-                self.E = 500
+                self.E = 10000
                 self.N = 0
 
                 self.Replicas = []
@@ -42,21 +42,22 @@ class DHash():
         # the index in every Replica for a million (using) simulated writes
         def update(self):
                 counts = [0 for s in range(self.S)]
-                using = self.oneperc
+                using = self.tenperc
 
 
                 for i in range(using):
                         randi =  random.randint(0, self.E-1)
-
-                        # for Replica in self.Replicas:
-                        #         counts[Replica[randi].serverId] += 1
-                        #         pass
-                        
+                        counts[self.Replicas[0][randi]] += 1
+                        for Replica in self.Replicas:
+                                counts[self.Replicas[0][randi]] += 1
+                                pass
                         pass
 
                 # Change the format to percentages
-                #       round((float(counts[c])/(using*3))*100, 2)
-
+                for c in range(self.S):
+                        counts[c] = round((float(counts[c])/(using*(self.N+1)))*100, 2)
+                        pass
+                
                 return counts
 
         # Add snew into Replicas
@@ -167,8 +168,10 @@ class DHash():
 
 # Run part
 dhash = DHash()
-dhash.add(5)
-dhash.killServer(3)
+dhash.add(10)
+dhash.killServer(9)
+#dhash.killServer(8)
+dhash.add(1)
 print dhash.update()
 
 dhash.printReplicas()
