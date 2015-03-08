@@ -7,29 +7,23 @@ import random
 
 # Distributed hashing
 class DHash():
-        def __init__(self):
-
-                # constants for the "update" function
-                self.million = 1000000
-                self.tenperc = int(self.million*0.1)
-                self.oneperc = int(self.million*0.01)
+        def __init__(self, extent):
 
                 # S, Servers, systems
                 # E, Extents
                 # N, Reflections, duplicates, replicas
                 # Start at zero, change this as we add more
                 self.S = 0 
-                self.E = 500
+                self.E = extent
                 self.N = 0
 
                 self.Replicas = []
                 pass
 
-        # Fill the Replicas with None values,
+        # Initialize the Replicas with None values,
         # "Empty", non-assigned values in every replica
         def fillReplicas(self, N):
                 Replicas = [[] for n in range(N)]
-                print "Filling replicas"
                 for n in range(self.N):
                         for j in range(self.E):
                                 Replicas[n].append(None)
@@ -38,6 +32,9 @@ class DHash():
 
                 return Replicas
 
+        
+        # Add a server, assign a part of the extent,
+        # including the backup replicas, to that server
         def assignNewServer(self, sid):
                 # N0
                 portion = int(self.E/self.S)
@@ -148,16 +145,14 @@ class DHash():
                                         n = sid
                                         pass
                                 pass
-                        pass
-                        
+                        pass   
                 pass
                 
 
         # Update simulation function that reads the serverId of
-        # the index in every Replica for a million (using) simulated writes
-        def update(self):
+        # the index in every Replica for simulated writes
+        def update(self, using):
                 counts = [0 for s in range(self.S)]
-                using = self.tenperc
 
                 for i in range(using):
                         randi =  random.randint(0, self.E-1)
@@ -188,7 +183,7 @@ class DHash():
                                 pass
                         pass
                 
-                # Use the randomized index for add the server into the replicas
+                # Use the randomized index to add the server into the replicas
                 # Going from randis[n] down (and wrap-around) to randis[n+1]
                 for e in reversed(range(self.E)):
                         for n in range(self.N):
@@ -205,8 +200,7 @@ class DHash():
                                 while snew in ids:
                                         snew = (snew+1)%self.S
                                         pass
-
-                                        
+ 
                                 # Add the serverId snew to replica n, at the nextIndex
                                 self.Replicas[n][nextIndex] = snew
                         pass
@@ -232,10 +226,6 @@ class DHash():
                 for i in range(nextS, nextS+x):
                         self.addToReplicas(i)
                         pass
-                #else:
-                 #       for i in range(nextS, nextS+x):
-                  #              self.assignNewServer(i)
-                   #             pass
                 pass
 
         # Kill server with id sid from the Replicas, and handle the rest of the extents
@@ -285,11 +275,23 @@ class DHash():
 # End of class DHash
 
 # Run part
-dhash = DHash()
-dhash.add(3, True)
-print dhash.update()
-dhash.printReplicas()
+dhash = DHash(10000)
+dhash.add(10, True)
+print "Initialized with 10 servers, writing 1,000,000 times:"
+print dhash.update(1000000)
+#dhash.printReplicas()
+
+dhash.add(3, False)
+print "Added 3 servers, writing 1,000,000 times:"
+print dhash.update(1000000)
+#dhash.printReplicas()
+
+dhash.killServer(5)
+print "Killed sid=5, writing 1,000,000 times:"
+print dhash.update(1000000)
+#dhash.printReplicas()
 
 dhash.add(1, False)
-print dhash.update()
-dhash.printReplicas()
+print "Added 1 server, writing 1,000,000 times:"
+print dhash.update(1000000)
+#dhash.printReplicas()
