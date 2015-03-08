@@ -29,7 +29,7 @@ class DHash():
         # "Empty", non-assigned values in every replica
         def fillReplicas(self, N):
                 Replicas = [[] for n in range(N)]
-
+                print "Filling replicas"
                 for n in range(self.N):
                         for j in range(self.E):
                                 Replicas[n].append(None)
@@ -44,8 +44,7 @@ class DHash():
                 first = random.randint(0, self.E-1)
                 last = first+portion
 
-                # Handle the case where the assigned chunk needs to wrap around
-                if last > self.E-1:
+                if last > self.E-1: # N0 wraparound
                         last -= (self.E-1)
                         for n in self.Replicas[0][first:]:
                                 n = sid
@@ -54,46 +53,103 @@ class DHash():
                                 n = sid
                                 pass
                         pass
-                # Handle the regular case, where no wrap is needed
-                else:
+                else: # No N0 wraparound
                         for n in self.Replicas[0][first:last]:
                                 n = sid
                                 pass
                         pass
                 #N1
                 if self.N >=2:
-                        if last < first:
-                                newFirst = random.randint(last, first-last)
-                                newLast = newFirst+portion
-                                for n in self.Replicas[1][newFirst:newLast]:
+                        if last < first: #N0 wraps around
+                                n1First = random.randint(last, first-last)
+                                n1Last = n1First+portion
+                                for n in self.Replicas[1][n1First:n1Last]:
                                         n = sid
                                         pass
                                 pass
-                        else:
-                                newFirst = random.randint(0, self.E-1)
-                                if (newFirst > first and newFirst < last):
-                                        newFirst = last+1
+                        else: #N0 doesn't wrap around
+                                n1First = random.randint(0, self.E-1)
+                                if (n1First > first and n1First < last):
+                                        n1First = last+1
                                         pass
-                                newLast = newFirst+portion
-                                if newLast > self.E-1:
-                                        newLast -= (self.E-1)
-                                        for n in self.Replicas[1][newFirst:]:
+                                n1Last = n1First+portion
+                                if n1Last > self.E-1: #N1 wraparound
+                                        n1Last -= (self.E-1)
+                                        for n in self.Replicas[1][n1First:]:
                                                 n = sid
                                                 pass
-                                        for n in self.Replicas[1][:newLast]:
+                                        for n in self.Replicas[1][:n1Last]:
                                                 n = sid
                                                 pass
                                         pass
-                                else:
-                                        for n in self.Replicas[1][newFirst:newLast]:
+                                else: #No N1 wraparound
+                                        for n in self.Replicas[1][n1First:n1Last]:
                                                 n = sid
                                                 pass
+                                        pass
                                 pass
                         pass
 
                 #N2
                 if self.N == 3:
+                        if last < first: #N0 wraparound
+                                n2First = random.randint(last, first-last)
+                                if (n2First > n1First) and (n2First < n1Last):
+                                        n2First = n1Last+1
+                                        pass
+                                n2Last = n2First+portion
+                                if (n2Last > n1First) and (n2Last < n1Last):
+                                        n2Last = n1First-1
+                                        pass
+                                pass
+                        else: #No N0 wraparound
+                                if n1First > n1Last: #N1 wraparound
+                                        n2First = random.randint(n1Last, n1First-n1Last)
+                                        if (n2First > first) and (n2First < last):
+                                                n2First = last+1
+                                                pass
+                                        n2Last = n2First+portion
+                                        if (n2Last > first) and (n2Last < last):
+                                                n2Last = last-1
+                                        if (n2Last > self.E-1):
+                                                n2Last = self.E-1
+                                                pass
+                                        pass
+                                else: #No N1 wraparound
+                                        n2First = random.randint(0, self.E)
+                                        if (n2First > first) and (n2First < last):
+                                                n2First = last+1
+                                                pass
+                                        if (n2First > n1First) and (n2First < n1Last):
+                                                n2First = n1Last+1
+                                                pass
+                                        n2Last = n2First+portion
+                                        if (n2Last > first) and (n2Last < last):
+                                                n2First = first-1
+                                                pass
+                                        if (n2Last > n1First) and (n2Last < n1Last):
+                                                n2First = n1First-1
+                                                pass
+                                        if (n2Last > self.E-1):
+                                                n2Last = self.E-1
+                                                pass
+                                        pass
+                                pass
+                        if n2Last > n2First: #No N2 wraparound
+                                for n in self.Replicas[2][n2First:n2Last]:
+                                        n = sid
+                                        pass
+                                pass
+                        else: #N2 wraparound
+                                for n in self.Replicas[2][:n2Last]:
+                                        n = sid
+                                        pass
+                                for n in self.Replicas[2][n2First:]:
+                                        n = sid
+                                        pass
+                                pass
                         pass
+                        
                 pass
                 
 
@@ -168,19 +224,18 @@ class DHash():
                 if self.N > 3:
                         self.N = 3
                         pass
-                self.Replicas = self.fillReplicas(self.N)
-
+                if initialize:
+                        self.Replicas = self.fillReplicas(self.N)
+                        pass
                 
                 # Start adding to replicas
-                if initialize:
-                        for i in range(nextS, nextS+x):
-                                self.addToReplicas(i)
-                                pass
+                for i in range(nextS, nextS+x):
+                        self.addToReplicas(i)
                         pass
-                else:
-                        for i in range(nextS, nextS+x):
-                                self.assignNewServer(i)
-                                pass
+                #else:
+                 #       for i in range(nextS, nextS+x):
+                  #              self.assignNewServer(i)
+                   #             pass
                 pass
 
         # Kill server with id sid from the Replicas, and handle the rest of the extents
@@ -235,6 +290,6 @@ dhash.add(3, True)
 print dhash.update()
 dhash.printReplicas()
 
-#dhash.add(1, False)
+dhash.add(1, False)
 print dhash.update()
 dhash.printReplicas()
