@@ -36,6 +36,7 @@ class DHash():
         # Add a server, assign a part of the extent,
         # including the backup replicas, to that server
         def assignNewServer(self, sid):
+                print "assignNewServer("+str(sid)+")"
                 # N0
                 portion = int(self.E/self.S)
                 first = random.randint(0, self.E-1)
@@ -43,16 +44,16 @@ class DHash():
 
                 if last > self.E-1: # N0 wraparound
                         last -= (self.E-1)
-                        for n in self.Replicas[0][first:]:
-                                n = sid
+                        for n in range(first, len(self.Replicas[0])):
+                                self.Replicas[0][n] = sid
                                 pass
-                        for n in self.Replicas[0][:last]:
-                                n = sid
+                        for n in range(0,last):
+                                self.Replicas[0][n] = sid
                                 pass
                         pass
                 else: # No N0 wraparound
-                        for n in self.Replicas[0][first:last]:
-                                n = sid
+                        for n in range(first, last):
+                                self.Replicas[0][n] = sid
                                 pass
                         pass
                 #N1
@@ -60,8 +61,8 @@ class DHash():
                         if last < first: #N0 wraps around
                                 n1First = random.randint(last, first-last)
                                 n1Last = n1First+portion
-                                for n in self.Replicas[1][n1First:n1Last]:
-                                        n = sid
+                                for n in range(self.Replicas[1][n1First:n1Last]):
+                                        self.Replicas[1][n] = sid
                                         pass
                                 pass
                         else: #N0 doesn't wrap around
@@ -72,16 +73,16 @@ class DHash():
                                 n1Last = n1First+portion
                                 if n1Last > self.E-1: #N1 wraparound
                                         n1Last -= (self.E-1)
-                                        for n in self.Replicas[1][n1First:]:
-                                                n = sid
+                                        for n in range(n1First, len(self.Replicas[1])):
+                                                self.Replicas[1][n] = sid
                                                 pass
-                                        for n in self.Replicas[1][:n1Last]:
-                                                n = sid
+                                        for n in range(0,n1Last):
+                                                self.Replicas[1][n] = sid
                                                 pass
                                         pass
                                 else: #No N1 wraparound
-                                        for n in self.Replicas[1][n1First:n1Last]:
-                                                n = sid
+                                        for n in range(n1First, n1Last):
+                                                self.Replicas[1][n] = sid
                                                 pass
                                         pass
                                 pass
@@ -133,16 +134,16 @@ class DHash():
                                         pass
                                 pass
                         if n2Last > n2First: #No N2 wraparound
-                                for n in self.Replicas[2][n2First:n2Last]:
-                                        n = sid
+                                for n in range(n2First, n2Last):
+                                        self.Replicas[2][n] = sid
                                         pass
                                 pass
                         else: #N2 wraparound
-                                for n in self.Replicas[2][:n2Last]:
-                                        n = sid
+                                for n in range(0, n2Last):
+                                        self.Replicas[2][n] = sid
                                         pass
-                                for n in self.Replicas[2][n2First:]:
-                                        n = sid
+                                for n in range(n2First, len(self.Replicas[2])):
+                                        self.Replicas[2][n] = sid
                                         pass
                                 pass
                         pass   
@@ -172,6 +173,7 @@ class DHash():
         # Add snew into Replicas
         #   for each Replica:
         def addToReplicas(self, snew):
+                print "addToReplicas("+str(snew)+")"
                 randis = [random.randint(0, self.E-1) for n in range(self.N)]
 
                 # Randomed index can't be the same as the server that's already there
@@ -208,6 +210,7 @@ class DHash():
 
         # Run addToReplicas() x times, with serverIds [nextS, nextS+1, .. x-1]
         def add(self, x, initialize):
+                print "add("+str(x)+", "+str(initialize)+")"
                 # Readjust the number of servers
                 nextS = self.S
                 self.S += x
@@ -223,8 +226,14 @@ class DHash():
                         pass
                 
                 # Start adding to replicas
+                
                 for i in range(nextS, nextS+x):
-                        self.addToReplicas(i)
+                        if initialize:
+                                self.addToReplicas(i)
+                                pass
+                        else:
+                                self.assignNewServer(i)
+                                pass
                         pass
                 pass
 
@@ -275,7 +284,7 @@ class DHash():
 # End of class DHash
 
 # Run part
-dhash = DHash(10000)
+dhash = DHash(500)
 dhash.add(10, True)
 print "Initialized with 10 servers, writing 1,000,000 times:"
 print dhash.update(1000000)
@@ -292,6 +301,10 @@ print dhash.update(1000000)
 #dhash.printReplicas()
 
 dhash.add(1, False)
-print "Added 1 server, writing 1,000,000 times:"
+print "Added 1 server, writing 1,000,000 times, five times:"
 print dhash.update(1000000)
-#dhash.printReplicas()
+#print dhash.update(1000000)
+#print dhash.update(1000000)
+#print dhash.update(1000000)
+#print dhash.update(1000000)
+dhash.printReplicas()
