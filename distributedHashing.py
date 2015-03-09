@@ -4,7 +4,6 @@
 
 import random
 
-
 # Distributed hashing
 class DHash():
         def __init__(self, extent):
@@ -36,7 +35,6 @@ class DHash():
         # Add a server, assign a part of the extent,
         # including the backup replicas, to that server
         def assignNewServer(self, sid):
-                print "assignNewServer("+str(sid)+")"
                 # N0
                 portion = int(self.E/self.S)
                 first = random.randint(0, self.E-1)
@@ -61,7 +59,7 @@ class DHash():
                         if last < first: #N0 wraps around
                                 n1First = random.randint(last, first-last)
                                 n1Last = n1First+portion
-                                for n in range(self.Replicas[1][n1First:n1Last]):
+                                for n in range(n1First,n1Last):
                                         self.Replicas[1][n] = sid
                                         pass
                                 pass
@@ -170,10 +168,9 @@ class DHash():
                 
                 return counts
 
-        # Add snew into Replicas
-        #   for each Replica:
+        # Add snew into Replicas,
+        #       find a random point in each replica
         def addToReplicas(self, snew):
-                print "addToReplicas("+str(snew)+")"
                 randis = [random.randint(0, self.E-1) for n in range(self.N)]
 
                 # Randomed index can't be the same as the server that's already there
@@ -208,9 +205,9 @@ class DHash():
                         pass
                 pass
 
-        # Run addToReplicas() x times, with serverIds [nextS, nextS+1, .. x-1]
+        # Add x servers to the system, initialize holds whether we're 
+        # initializing the system or not
         def add(self, x, initialize):
-                print "add("+str(x)+", "+str(initialize)+")"
                 # Readjust the number of servers
                 nextS = self.S
                 self.S += x
@@ -226,7 +223,6 @@ class DHash():
                         pass
                 
                 # Start adding to replicas
-                
                 for i in range(nextS, nextS+x):
                         if initialize:
                                 self.addToReplicas(i)
@@ -284,27 +280,25 @@ class DHash():
 # End of class DHash
 
 # Run part
-dhash = DHash(500)
+dhash = DHash(10000)
 dhash.add(10, True)
 print "Initialized with 10 servers, writing 1,000,000 times:"
 print dhash.update(1000000)
-#dhash.printReplicas()
 
-dhash.add(3, False)
-print "Added 3 servers, writing 1,000,000 times:"
-print dhash.update(1000000)
-#dhash.printReplicas()
-
+for x in range(4):
+        print str(x+1)
+        dhash.add(5, False)
+        print "Added 5 servers, writing 1,000,000 times:"
+        print dhash.update(1000000)
+        pass
+print
+print
+print
+print
 dhash.killServer(5)
 print "Killed sid=5, writing 1,000,000 times:"
 print dhash.update(1000000)
-#dhash.printReplicas()
 
 dhash.add(1, False)
 print "Added 1 server, writing 1,000,000 times, five times:"
 print dhash.update(1000000)
-#print dhash.update(1000000)
-#print dhash.update(1000000)
-#print dhash.update(1000000)
-#print dhash.update(1000000)
-dhash.printReplicas()

@@ -29,10 +29,11 @@ DHash class:
 			randomly assigned starting point, this is part of the initialisation
 
 		add(x, initialize):
-			Add to the system x number of servers, the first call to this function 
+			Add x number of servers to the system, the first call to this function 
 			must have the value of initialize set to True, the system is then initialized 
-			using addToReplicas. Subsequent calls to this function must have the value of 
-			initialize set to False, as the system has already been initialized
+			using addToReplicas. Subsequent calls to this function must have the 
+			value of initialize set to False, as the system has already been 
+			initialized
 
 		killServer(sid):
 			Kills the server with the id sid and substitutes the cleared values 
